@@ -1,0 +1,17 @@
+# local scratch / tooling output
+_*
+.chromeprof*/
+*.local.*
+
+# editors & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# node
+node_modules/
+npm-debug.log*
+
+# vercel
+.vercel
