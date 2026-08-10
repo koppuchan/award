@@ -5,11 +5,14 @@ A static HTML/CSS/SVG reproduction of `design.png` (1254 × 1254).
 ## Structure
 
 ```
-index.html            the deliverable — single self-contained page
-img/                  photos + logo
-design.png            the reference mock-up
-tools/build.mjs       generator that emits index.html
-tools/sparkles-*.txt  background sparkle coordinates sampled from design.png
+index.html              the deliverable — single self-contained page
+img/                    photos + logo
+fonts/                  self-hosted Noto Serif JP glyph subsets
+design.png              the reference mock-up
+tools/build.mjs         generator that emits index.html
+tools/fetch-fonts.mjs   re-downloads fonts/ (run when the copy changes)
+tools/sparkles-*.txt    background sparkle coordinates sampled from design.png
+tools/cmp.ps1           renders a design-vs-build comparison strip
 ```
 
 `index.html` is committed and is what Vercel serves. It is **generated** — edit
@@ -72,5 +75,26 @@ the tag off the card.
 
 ## Fonts
 
-Noto Serif JP (Google Fonts), with `Yu Mincho` / `Hiragino Mincho ProN` as
-local fallbacks.
+Noto Serif JP, **self-hosted** as glyph subsets in `fonts/` — 42KB for all
+three weights (400/500/700) versus megabytes for the full Japanese family.
+`Yu Mincho` / `Hiragino Mincho ProN` are local fallbacks.
+
+The subsets contain only the characters this page renders. Regenerate after
+changing any visible copy:
+
+```bash
+node tools/fetch-fonts.mjs   # updates fonts/ and tools/fonts.json
+node tools/build.mjs
+```
+
+This replaced a Google Fonts `<link>`, which is render-blocking: whenever
+`fonts.googleapis.com` was slow to answer, the page painted nothing at all.
+
+## Known limitation: E: drive and git
+
+Git cannot write refs or the index anywhere on the `E:` drive on this machine
+— a brand-new `git init` in `E:\anything` fails with `unable to write new
+index file` / `couldn't set 'refs/heads/main'`, while the same commands work
+on `C:`. Something (most likely real-time antivirus or a filesystem filter
+driver) is blocking the unlink/rename that git relies on. Until that is
+excluded, commit from a clone on `C:` rather than from `E:\award`.

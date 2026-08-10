@@ -33,19 +33,23 @@ const CURTAIN_EDGE = [
   [268, 111], [280, 97], [292, 81], [304, 73], [316, 72], [328, 74],
   [340, 77], [364, 82], [400, 86], [460, 92], [520, 97], [580, 101],
   [640, 105], [700, 107], [760, 110], [820, 112], [880, 115], [925, 117],
-  [980, 119], [1010, 120],
+  // the drape keeps its width and simply dissolves into the black floor,
+  // still faintly visible around y = 1060 and gone by ~1090
+  [960, 118], [1000, 118], [1040, 116], [1070, 112], [1090, 104],
 ];
 const edgeAt = sampler(CURTAIN_EDGE);
-const CURTAIN_BOTTOM = 1010;
+const CURTAIN_BOTTOM = 1090;
 
 /** Fold highlights run along x = u * edge(y), so they converge at the
  *  tie-back pinch and flare out again below it, like real gathered fabric.
  *  u, stroke width, colour stop and opacity are jittered per fold. */
 const FOLDS = [
-  [0.10, 2.2, 0.30], [0.16, 1.6, 0.20], [0.22, 2.6, 0.42], [0.28, 1.5, 0.22],
-  [0.34, 3.0, 0.50], [0.40, 1.8, 0.26], [0.46, 3.4, 0.62], [0.52, 1.6, 0.24],
-  [0.57, 4.0, 0.80], [0.63, 2.0, 0.32], [0.69, 3.2, 0.58], [0.75, 1.8, 0.28],
-  [0.80, 4.2, 0.86], [0.86, 2.2, 0.36], [0.91, 3.6, 0.74], [0.96, 2.4, 0.44],
+  [0.075, 1.4, 0.22], [0.12, 1.0, 0.14], [0.165, 1.8, 0.30], [0.21, 1.1, 0.16],
+  [0.255, 2.0, 0.36], [0.30, 1.2, 0.18], [0.345, 2.2, 0.44], [0.39, 1.1, 0.17],
+  [0.435, 2.4, 0.50], [0.48, 1.3, 0.20], [0.525, 2.6, 0.58], [0.57, 1.2, 0.19],
+  [0.615, 2.8, 0.64], [0.66, 1.4, 0.22], [0.705, 2.6, 0.56], [0.75, 1.3, 0.20],
+  [0.795, 3.0, 0.70], [0.84, 1.5, 0.24], [0.885, 2.8, 0.62], [0.93, 1.6, 0.26],
+  [0.965, 2.4, 0.50],
 ];
 
 function foldLines() {
@@ -95,86 +99,144 @@ const CURTAIN_BODY = `
     </g>
   </g>`;
 
+/* ============================ fonts ============================ *
+ * Self-hosted glyph subsets (see tools/fetch-fonts.mjs). Keeps the page free
+ * of a render-blocking third-party stylesheet and makes text render
+ * identically regardless of whether Google Fonts is reachable.
+ */
+const fontManifest = JSON.parse(fs.readFileSync(path.join(HERE, 'fonts.json'), 'utf8'));
+
+const FONT_FACE = fontManifest
+  .map((f) => `@font-face{font-family:"Noto Serif JP";font-style:normal;font-weight:${f.weight};
+  font-display:block;src:url(fonts/${f.file}) format("woff2")}`)
+  .join('\n');
+
+const FONT_PRELOAD = fontManifest
+  .map((f) => `<link rel="preload" href="fonts/${f.file}" as="font" type="font/woff2" crossorigin>`)
+  .join('\n');
+
 /* ============================ sparkles ============================ */
 const sparkDots = fs.readFileSync(path.join(HERE, 'sparkles-dots.txt'), 'utf8').trim();
 const sparkStars = fs.readFileSync(path.join(HERE, 'sparkles-stars.txt'), 'utf8').trim();
 
 /* ============================ badge ============================ */
+/** Rounded scallop rim: valleys sit on the inner radius, and each bump is a
+ *  quadratic through a control point past the outer radius, which reads as a
+ *  soft petal rather than the sawtooth a straight-line star gives. */
 function scallop(cx, cy, ro, ri, n) {
-  const p = [];
-  for (let i = 0; i < n * 2; i++) {
-    const r = i % 2 === 0 ? ro : ri;
+  const pt = (r, i) => {
     const a = (Math.PI * i) / n - Math.PI / 2;
-    p.push(`${r2(cx + r * Math.cos(a))} ${r2(cy + r * Math.sin(a))}`);
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+  const ctrl = ri + (ro - ri) / Math.cos(Math.PI / (2 * n)) * 1.28;
+  let d = '';
+  for (let i = 0; i < n * 2; i += 2) {
+    const [x0, y0] = pt(ri, i);
+    const [cxp, cyp] = pt(ctrl, i + 1);
+    const [x1, y1] = pt(ri, i + 2);
+    d += (d ? '' : `M${r2(x0)} ${r2(y0)}`) + `Q${r2(cxp)} ${r2(cyp)} ${r2(x1)} ${r2(y1)}`;
   }
-  return 'M' + p.join('L') + 'Z';
+  return d + 'Z';
 }
 
-/** laurel sprig hugging the left flank of the medallion.
- *  theta is measured from 12 o'clock, growing counter-clockwise. */
+/* Badge geometry. The viewBox is deliberately larger than the medallion so the
+   laurel tips are not clipped by the SVG viewport (they were, before). */
+const BX = 46;      // medallion centre
+const BY = 45.5;
+const BRO = 37.5;   // scallop outer radius
+
+/** Laurel sprig behind the medallion. Only the tips show, at roughly 7-8
+ *  o'clock. theta is measured from 12 o'clock, growing counter-clockwise. */
 function laurelLeaves() {
-  const R = 36.5;
+  const R = 35;
   let stem = '';
-  let out = '';
-  for (let i = 0; i <= 7; i++) {
-    const th = ((152 - (i / 7) * 92) * Math.PI) / 180;
-    const x = 40 - R * Math.sin(th);
-    const y = 39.5 - R * Math.cos(th);
-    if (i === 0) stem = `M${r2(x)} ${r2(y)}`;
-    else stem += `L${r2(x)} ${r2(y)}`;
-    const rot = 90 - (th * 180) / Math.PI;       // lay the leaf along the tangent
-    out += `<ellipse cx="${r2(x)}" cy="${r2(y)}" rx="6" ry="2.5" transform="rotate(${r2(rot)} ${r2(x)} ${r2(y)})"/>`;
+  let leaves = '';
+  for (let i = 0; i <= 8; i++) {
+    const deg = 158 - (i / 8) * 78;              // 158° (low) up to 80°
+    const th = (deg * Math.PI) / 180;
+    const x = BX - R * Math.sin(th);
+    const y = BY - R * Math.cos(th);
+    stem += (i ? 'L' : 'M') + `${r2(x)} ${r2(y)}`;
+    // splay the leaf outward from the rim so the tip clears the scallop
+    const rot = 118 - deg;
+    const lx = BX - (R + 3.4) * Math.sin(th);
+    const ly = BY - (R + 3.4) * Math.cos(th);
+    leaves += `<ellipse cx="${r2(lx)}" cy="${r2(ly)}" rx="6.4" ry="2.6" transform="rotate(${r2(rot)} ${r2(lx)} ${r2(ly)})"/>`;
   }
-  return `<path d="${stem}" fill="none" stroke="url(#lgold)" stroke-width="1.6"/>${out}`;
+  return `<path d="${stem}" fill="none" stroke="url(#lgold)" stroke-width="1.7"/>${leaves}`;
 }
 
-const BADGE = `<svg class="badge" viewBox="0 0 80 80" aria-hidden="true">
+const BADGE = `<svg class="badge" viewBox="0 0 92 92" aria-hidden="true">
 <g fill="url(#lgold)">${laurelLeaves()}</g>
-<g fill="url(#lgold)" transform="translate(80,0) scale(-1,1)">${laurelLeaves()}</g>
-<path d="${scallop(40, 39.5, 37.6, 34.1, 25)}" fill="url(#bgold)"/>
-<circle cx="40" cy="39.5" r="34.2" fill="url(#bgold2)"/>
-<circle cx="40" cy="39.5" r="27.4" fill="url(#bcore)"/>
-<circle cx="40" cy="39.5" r="26.4" fill="none" stroke="#8a6620" stroke-width=".8"/>
-<path d="M33.2 27.4l2.4-4 2.6 2.3L40 21.2l1.8 4.5 2.6-2.3 2.4 4z" fill="url(#lgold)"/>
-<rect x="33" y="27.9" width="14" height="1.7" rx=".8" fill="url(#lgold)"/>
-<circle cx="33.2" cy="22.6" r="1.15" fill="#f6dd93"/>
-<circle cx="46.8" cy="22.6" r="1.15" fill="#f6dd93"/>
-<circle cx="40" cy="20" r="1.3" fill="#f6dd93"/>
-<text class="badge-t" x="40" y="49.8">認定</text>
+<g fill="url(#lgold)" transform="translate(92,0) scale(-1,1)">${laurelLeaves()}</g>
+<path d="${scallop(BX, BY, BRO, 33.6, 19)}" fill="url(#bgold)"/>
+<circle cx="${BX}" cy="${BY}" r="33.4" fill="url(#bgold2)"/>
+<circle cx="${BX}" cy="${BY}" r="27.6" fill="url(#bcore)"/>
+<circle cx="${BX}" cy="${BY}" r="26.6" fill="none" stroke="#8a6620" stroke-width=".9"/>
+<path d="M35.2 33.6 36.8 25.4 41 29.2 46 21.8 51 29.2 55.2 25.4 56.8 33.6Z" fill="url(#lgold)"/>
+<rect x="34.6" y="33.4" width="22.8" height="2.6" rx="1.2" fill="url(#lgold)"/>
+<circle cx="36.2" cy="23.4" r="1.7" fill="#f8e3a0"/>
+<circle cx="55.8" cy="23.4" r="1.7" fill="#f8e3a0"/>
+<circle cx="46" cy="19.6" r="1.9" fill="#f8e3a0"/>
+<text class="badge-t" x="${BX}" y="57.4">認定</text>
 </svg>`;
 
-/* ============================ ornaments ============================ */
-const PAGE_CORNER = `<svg class="pcorner" viewBox="0 0 92 92" aria-hidden="true">
-<g fill="none" stroke="url(#ogold)" stroke-width="1.6" stroke-linecap="round">
-<path d="M5 32C5 17 13 7 27 7c9 0 14 6 14 12 0 5-3 9-8 9-4 0-7-3-7-6 0-3 2-5 5-5"/>
-<path d="M32 5C17 5 7 13 7 27c0 9 6 14 12 14 5 0 9-3 9-8 0-4-3-7-6-7-3 0-5 2-5 5"/>
-<path d="M9 46c-2-10 3-19 12-22 6-2 11 0 13 4"/>
-<path d="M46 9c-10-2-19 3-22 12-2 6 0 11 4 13"/>
-<path d="M7 62c9-2 15-9 17-17 2-9 9-15 18-17"/>
-<path d="M20 70c7-4 11-11 12-19M70 20c-4 7-11 11-19 12"/>
-<path d="M6 78c7 0 12-4 15-9M78 6c0 7-4 12-9 15"/>
-<path d="M28 28c4 0 8 3 9 8M28 28c0-4 3-8 8-9"/>
-<path d="M40 20c5-3 11-3 16 0M20 40c-3 5-3 11 0 16"/>
+/* ============================ ornaments ============================ *
+ * The mock-up's corner motif is symmetric about the 45° diagonal: a small
+ * hub near the corner throws one acanthus branch along each edge. So the
+ * branch is drawn once and mirrored with matrix(0,1,1,0,0,0), which swaps
+ * x and y — i.e. reflects across the diagonal.
+ */
+const DIAG = 'matrix(0,1,1,0,0,0)';
+
+/** one acanthus branch running away from the hub along the top edge */
+const PAGE_BRANCH = `
+<g fill="none" stroke="url(#ogold)" stroke-width="1.55" stroke-linecap="round">
+  <path d="M20 20C30 18.4 38 17.9 49 17.2"/>
+  <path d="M27.6 18.4C26.8 10.6 32.4 4.6 39.4 5.6c5.8.8 6.4 7.4 1.2 8.6-3.2.7-4.6-2.3-2.4-3.8"/>
+  <path d="M49 17.2c5.6-.9 9-4 8.6-7.3-.3-2.2-2.6-2.9-3.7-1.4"/>
+  <path d="M32.6 19.9c3.2 3.2 7.4 3.2 10.1 1.1"/>
+  <path d="M21.6 17.4C24.2 11.4 29 7.9 34 7.1"/>
+  <path d="M44.6 18.6c3.6 2.4 8 2 10.8-.8"/>
+  <path d="M16.2 13.4c3-1.2 6.4-.8 8.8 1.2"/>
+  <path d="M11.4 20.4c-2.6 1.6-3.4 4.8-1.8 7.2 1.1 1.6 3.2 1.4 3.6-.4"/>
 </g>
 <g fill="url(#ogold)">
-<circle cx="28.5" cy="28.5" r="2.4"/><circle cx="11" cy="53" r="1.7"/>
-<circle cx="53" cy="11" r="1.7"/><circle cx="17" cy="17" r="1.4"/>
-<ellipse cx="45" cy="17" rx="5" ry="2.1" transform="rotate(-22 45 17)"/>
-<ellipse cx="17" cy="45" rx="2.1" ry="5" transform="rotate(-22 17 45)"/>
-<ellipse cx="60" cy="28" rx="4.4" ry="1.9" transform="rotate(28 60 28)"/>
-<ellipse cx="28" cy="60" rx="1.9" ry="4.4" transform="rotate(28 28 60)"/>
-</g></svg>`;
+  <path d="M21 18.4C23.6 12 28.2 8.5 33.6 7.4c-1.5 4.6-5.6 8.7-11.4 11.8Z"/>
+  <path d="M45.8 20C48.6 22.4 52 22.9 55.4 21.6c-2.4 2.6-6 3.2-9.8 1.6Z"/>
+  <ellipse cx="14.6" cy="12.2" rx="3.4" ry="1.5" transform="rotate(-30 14.6 12.2)"/>
+  <circle cx="43.2" cy="4.2" r="1.4"/><circle cx="54.6" cy="13.2" r="1"/>
+  <circle cx="36.2" cy="22" r=".9"/><circle cx="9.4" cy="28.6" r="1"/>
+</g>`;
+
+/** the part that sits on the symmetry axis, drawn once */
+const PAGE_SPINE = `
+<g fill="none" stroke="url(#ogold)" stroke-width="1.7" stroke-linecap="round">
+  <path d="M5.6 5.6 20 20"/>
+  <path d="M8.4 15.6C11 13 13 11 15.6 8.4"/>
+</g>
+<circle cx="20" cy="20" r="2.5" fill="url(#ogold)"/>
+<circle cx="5" cy="5" r="1.6" fill="url(#ogold)"/>`;
+
+const PAGE_CORNER = `<svg class="pcorner" viewBox="0 0 66 66" aria-hidden="true">
+${PAGE_SPINE}${PAGE_BRANCH}<g transform="${DIAG}">${PAGE_BRANCH}</g></svg>`;
+
+/** same motif, simplified for the 30px card corners */
+const CARD_BRANCH = `
+<g fill="none" stroke="url(#ogold)" stroke-width="1.5" stroke-linecap="round">
+  <path d="M9.5 9.5C14 8.8 18 8.6 23 8.3"/>
+  <path d="M13.4 8.6C13.1 5.2 15.6 2.5 18.8 3c2.6.4 2.9 3.4.5 3.9-1.4.3-2-1-1.1-1.7"/>
+  <path d="M23 8.3c2.4-.4 3.9-1.8 3.7-3.3"/>
+</g>
+<g fill="url(#ogold)">
+  <path d="M10.2 8.8C11.5 5.8 13.6 4.2 16.1 3.7c-.7 2.1-2.6 4-5.3 5.4Z"/>
+  <circle cx="20.6" cy="2.4" r="1"/>
+</g>`;
 
 const CARD_CORNER = `<svg class="ccorner" viewBox="0 0 30 30" aria-hidden="true">
-<g fill="none" stroke="url(#ogold)" stroke-width="1.4" stroke-linecap="round">
-<path d="M1.5 12c0-7 4-11 10-11 4 0 7 3 7 6 0 3-2 5-4 5-2 0-4-2-4-4"/>
-<path d="M12 1.5C5 1.5 1.5 5.5 1.5 12c0 4 3 7 6 7 3 0 5-2 5-4 0-2-2-4-4-4"/>
-<path d="M3 22c4-1 7-4 8-8 1-4 4-7 8-8"/>
-<path d="M22 3c-1 4-4 7-8 8-4 1-7 4-8 8"/>
-</g>
-<g fill="url(#ogold)"><circle cx="11.5" cy="11.5" r="1.8"/><circle cx="5" cy="5" r="1.1"/>
-<ellipse cx="21" cy="8" rx="3.2" ry="1.4" transform="rotate(-26 21 8)"/>
-<ellipse cx="8" cy="21" rx="1.4" ry="3.2" transform="rotate(-26 8 21)"/></g></svg>`;
+<path d="M2.6 2.6 9.5 9.5" fill="none" stroke="url(#ogold)" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="9.5" cy="9.5" r="1.7" fill="url(#ogold)"/>
+${CARD_BRANCH}<g transform="${DIAG}">${CARD_BRANCH}</g></svg>`;
 
 const cardCorners = ['tl', 'tr', 'bl', 'br']
   .map((k) => CARD_CORNER.replace('class="ccorner"', `class="ccorner ccorner--${k}"`))
@@ -232,10 +294,9 @@ const html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ハカセさんぽ 認定ホール｜ハカセが自信を持って推薦する優良ホール</title>
 <meta name="description" content="全国のパチンコホールを調査し、独自の基準をクリアした認定ホールをご紹介します。">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+${FONT_PRELOAD}
 <style>
+${FONT_FACE}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0;background:#000}
 body{overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -259,7 +320,7 @@ img,svg{display:block}
 .frame{position:absolute;inset:13px;pointer-events:none;border:2px solid transparent;
   border-image:linear-gradient(150deg,#f6e6a6,#c9992a 20%,#7a5205 46%,#dbb246 66%,#f8ecb6 84%,#a5731a) 1}
 .frame::after{content:"";position:absolute;inset:2px;border:1px solid rgba(190,142,38,.45)}
-.pcorner{position:absolute;width:92px;height:92px;pointer-events:none}
+.pcorner{position:absolute;width:66px;height:66px;pointer-events:none}
 .pcorner--tl{left:14px;top:14px}
 .pcorner--tr{right:14px;top:14px;transform:scaleX(-1)}
 .pcorner--bl{left:14px;bottom:14px;transform:scaleY(-1)}
@@ -334,9 +395,10 @@ img,svg{display:block}
   border-left:12px solid #2a1503;border-top:7px solid transparent;border-bottom:7px solid transparent}
 
 /* ---------- badge + corners ---------- */
-.badge{position:absolute;left:9px;top:2px;width:78px;height:78px;
+/* 92px box for a ~75px medallion: the extra room is for the laurel tips */
+.badge{position:absolute;left:2px;top:-1px;width:92px;height:92px;
   filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))}
-.badge-t{font-family:"Noto Serif JP","Yu Mincho",serif;font-weight:700;font-size:20.5px;
+.badge-t{font-family:"Noto Serif JP","Yu Mincho",serif;font-weight:700;font-size:22px;
   text-anchor:middle;fill:url(#tgold);letter-spacing:.5px}
 .ccorner{position:absolute;width:30px;height:30px;pointer-events:none}
 .ccorner--tl{left:5px;top:6px}
@@ -424,13 +486,13 @@ ${CARDS.map(card).join('\n')}
   <stop offset=".74" stop-color="#d9ad33"/><stop offset=".94" stop-color="#c39428"/>
   <stop offset="1" stop-color="#8f6710"/></linearGradient>
 <linearGradient id="cloth" x1="0" y1="0" x2="1" y2="0">
-  <stop offset="0" stop-color="#060000"/><stop offset=".18" stop-color="#150101"/>
-  <stop offset=".5" stop-color="#210202"/><stop offset=".8" stop-color="#2c0403"/>
-  <stop offset="1" stop-color="#380705"/></linearGradient>
+  <stop offset="0" stop-color="#040000"/><stop offset=".18" stop-color="#0f0000"/>
+  <stop offset=".5" stop-color="#180101"/><stop offset=".8" stop-color="#210202"/>
+  <stop offset="1" stop-color="#2a0403"/></linearGradient>
 <linearGradient id="foldHi" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${CURTAIN_BOTTOM}">
-  <stop offset="0" stop-color="#c4322c"/><stop offset=".22" stop-color="#a8221e"/>
-  <stop offset=".42" stop-color="#8c1a17"/><stop offset=".72" stop-color="#6d1210"/>
-  <stop offset="1" stop-color="#4a0a09"/></linearGradient>
+  <stop offset="0" stop-color="#a0231f"/><stop offset=".22" stop-color="#8a1a17"/>
+  <stop offset=".42" stop-color="#701312"/><stop offset=".72" stop-color="#560d0c"/>
+  <stop offset="1" stop-color="#380707"/></linearGradient>
 <filter id="soft" x="-20%" y="-5%" width="140%" height="110%">
   <feGaussianBlur stdDeviation="1.1"/></filter>
 <linearGradient id="braid" x1="0" y1="0" x2="1" y2=".22">
@@ -444,10 +506,10 @@ ${CARDS.map(card).join('\n')}
   <stop offset="1" stop-color="#8a6110"/></linearGradient>
 <linearGradient id="cfade" x1="0" y1="0" x2="0" y2="1">
   <stop offset="0" stop-color="#000" stop-opacity="0"/>
-  <stop offset=".78" stop-color="#000" stop-opacity="0"/>
-  <stop offset=".88" stop-color="#000" stop-opacity=".3"/>
-  <stop offset=".955" stop-color="#000" stop-opacity=".82"/>
-  <stop offset="1" stop-color="#000" stop-opacity="1"/></linearGradient>
+  <stop offset=".86" stop-color="#000" stop-opacity="0"/>
+  <stop offset=".92" stop-color="#000" stop-opacity=".22"/>
+  <stop offset=".96" stop-color="#000" stop-opacity=".42"/>
+  <stop offset="1" stop-color="#000" stop-opacity=".88"/></linearGradient>
 <linearGradient id="cshade" x1="0" y1="0" x2="1" y2="0">
   <stop offset="0" stop-color="#000" stop-opacity=".82"/>
   <stop offset=".09" stop-color="#000" stop-opacity=".35"/>

@@ -15,3 +15,6 @@ npm-debug.log*
 
 # vercel
 .vercel
+
+# stray editor temp files
+*.tmp.*
