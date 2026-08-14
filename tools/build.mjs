@@ -10,6 +10,18 @@ const HERE = import.meta.dirname;
 const ROOT = path.join(HERE, '..');
 const D = 1254; // design canvas
 
+/* ---- edit me -------------------------------------------------------- *
+ * Where the "back to the main site" button points. Set this to the
+ * WordPress page this sub-directory was linked from.
+ */
+const BACK_URL = 'https://uraken0915.com/';
+const BACK_LABEL = '元のページへ戻る';
+
+/* Below this viewport width the fixed 1254px canvas is abandoned and the
+ * page reflows into a single readable column. Above it, the canvas is
+ * scaled to fit as before. */
+const MOBILE_BP = 1000;
+
 const r2 = (n) => Math.round(n * 100) / 100;
 
 function sampler(pts) {
@@ -248,10 +260,15 @@ function octagon(x, y, w, h, c) {
     `H${x + c}L${x} ${y + h - c}V${y + c}Z`;
 }
 
+/* The outline hugs the plate with an even gap on all four sides. An earlier
+   version inset the plate 8px from the top but only 2px from the bottom,
+   which read as the button sitting low inside its frame. */
+const BTN_PLATE = octagon(3.5, 4.5, 239, 41, 6.5);
+
 const BTN_GFX = `<svg class="btn__gfx" viewBox="0 0 246 50" aria-hidden="true">
-<path d="${octagon(0.6, 0.6, 244.8, 48.8, 9)}" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
-<path d="${octagon(4, 8, 239, 39.5, 6.5)}" fill="url(#btnBody)"/>
-<path d="${octagon(4, 8, 239, 39.5, 6.5)}" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
+<path d="${octagon(0.8, 1.8, 244.4, 46.4, 8.5)}" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
+<path d="${BTN_PLATE}" fill="url(#btnBody)"/>
+<path d="${BTN_PLATE}" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
 </svg>`;
 
 /* ============================ cards ============================ */
@@ -388,10 +405,10 @@ img,svg{display:block}
 .btn{position:absolute;left:25px;top:88px;width:246px;height:50px;display:block;
   text-decoration:none}
 .btn__gfx{position:absolute;inset:0;width:246px;height:50px}
-.btn__label{position:absolute;left:0;right:0;top:8px;height:39.5px;display:flex;
+.btn__label{position:absolute;left:0;right:0;top:4.5px;height:41px;display:flex;
   align-items:center;justify-content:center;font-size:21px;font-weight:700;
   letter-spacing:.09em;text-indent:.09em;color:#2a1503}
-.btn__arrow{position:absolute;right:26px;top:27.5px;width:0;height:0;margin-top:-7px;
+.btn__arrow{position:absolute;right:26px;top:25px;width:0;height:0;margin-top:-7px;
   border-left:12px solid #2a1503;border-top:7px solid transparent;border-bottom:7px solid transparent}
 
 /* ---------- badge + corners ---------- */
@@ -405,6 +422,95 @@ img,svg{display:block}
 .ccorner--tr{right:5px;top:6px;transform:scaleX(-1)}
 .ccorner--bl{left:5px;bottom:5px;transform:scaleY(-1)}
 .ccorner--br{right:5px;bottom:5px;transform:scale(-1)}
+
+/* ---------- back to the main site ---------- */
+.pagenav{background:#000;padding:26px 16px 44px;text-align:center}
+.backbtn{position:relative;display:inline-block;width:300px;max-width:100%;height:56px;
+  text-decoration:none}
+.backbtn__gfx{position:absolute;inset:0;width:100%;height:100%}
+.backbtn__label{position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;gap:10px;font-size:19px;font-weight:700;letter-spacing:.06em;
+  color:#2a1503}
+.backbtn__arrow{width:0;height:0;border-right:11px solid #2a1503;
+  border-top:7px solid transparent;border-bottom:7px solid transparent}
+.backbtn:hover .backbtn__label{color:#000}
+.backbtn:focus-visible{outline:3px solid #f0cd6b;outline-offset:3px}
+
+/* ================= narrow screens: reflow into one column ================
+   Below ${MOBILE_BP}px the fixed canvas would scale text down to ~8px, so the
+   absolute positioning is unwound and the page becomes a normal document. */
+@media (max-width:${MOBILE_BP - 1}px){
+  .viewport{height:auto!important}
+  .stage{width:100%;height:auto;transform:none!important;padding:0 0 34px}
+
+  .curtain{display:none}
+  .spark{height:100%}
+  .frame{inset:7px}
+  .frame::after{inset:3px}
+  .pcorner{width:46px;height:46px}
+  .pcorner--tl,.pcorner--tr{top:8px}
+  .pcorner--bl,.pcorner--br{bottom:8px}
+  .pcorner--tl,.pcorner--bl{left:8px}
+  .pcorner--tr,.pcorner--br{right:8px}
+
+  /* must stay positioned: .bg and .spark are absolute, and absolutely
+     positioned siblings paint above static ones regardless of DOM order */
+  .content{position:relative;left:auto;top:auto;z-index:1;width:auto;height:auto;
+    padding:0 clamp(16px,4.6vw,30px)}
+  .logo{position:static;transform:none;width:min(300px,64%);margin:clamp(18px,5vw,30px) auto 0}
+  /* 4.5vw keeps all 19 characters on one line down to ~340px wide, so the
+     heading never breaks mid-word (ホ / ール) */
+  .headline{position:static;margin:clamp(14px,3.6vw,22px) 0 0;font-size:clamp(13px,4.5vw,30px);
+    line-height:1.45;letter-spacing:.01em}
+  .rule{position:static;transform:none;width:100%;max-width:560px;height:14px;
+    margin:clamp(10px,2.6vw,16px) auto 0}
+  .lead{position:static;margin:clamp(8px,2.4vw,14px) 0 0;font-size:clamp(12px,3.3vw,15px);
+    line-height:1.85;text-align:center}
+
+  .grid{position:static;width:auto;grid-template-columns:1fr;
+    gap:clamp(16px,4.4vw,26px);margin-top:clamp(20px,5.4vw,34px)}
+  /* the frame is absolute on desktop, which would collapse an auto-height card */
+  .card{width:100%;height:auto}
+  .card__frame{position:relative;inset:auto}
+  .card__body{height:auto;padding:10px 8px 8px}
+  .card__photo{width:auto;height:auto;aspect-ratio:297/199}
+  .card__rule{width:auto}
+  .card__info{width:auto;height:auto;padding:clamp(12px,3.4vw,20px) clamp(10px,3vw,16px)
+    clamp(14px,3.8vw,20px)}
+
+  .card__row{position:static;height:auto;padding:0;display:flex;align-items:center;
+    justify-content:space-between;gap:10px}
+  /* scaleX does not reduce layout width, so on a narrow screen the longest
+     name forced the card wider than the viewport. Shrink the font instead,
+     reusing the same per-card factor. */
+  .card__name{position:static;transform:none;line-height:1.3;min-width:0}
+  .card__name span{transform:none;
+    font-size:max(12.5px,calc(min(25px,5.4vw) * var(--sx,1)))}
+  .tag{position:static;flex:none;width:clamp(62px,17vw,78px);height:clamp(29px,7.6vw,36px)}
+  .tag i{font-size:clamp(13px,3.7vw,17px)}
+
+  .btn{position:static;width:100%;max-width:300px;height:clamp(46px,12vw,54px);
+    margin:clamp(12px,3.4vw,18px) auto 0}
+  .btn__gfx{width:100%;height:100%}
+  .btn__label{top:9%;height:82%;font-size:clamp(16px,4.4vw,21px)}
+  .btn__arrow{right:8%;top:50%;border-left-width:clamp(9px,2.6vw,12px);
+    border-top-width:clamp(5px,1.5vw,7px);border-bottom-width:clamp(5px,1.5vw,7px);
+    margin-top:calc(clamp(5px,1.5vw,7px) * -1)}
+
+  .badge{left:1%;top:-2px;width:clamp(58px,17vw,88px);height:auto;aspect-ratio:1}
+  .ccorner{width:clamp(20px,6vw,30px);height:clamp(20px,6vw,30px)}
+
+  .backbtn{height:clamp(48px,13vw,56px)}
+  .backbtn__label{font-size:clamp(15px,4.2vw,19px)}
+}
+
+/* tablets: two columns rather than dropping straight to one */
+@media (min-width:640px) and (max-width:${MOBILE_BP - 1}px){
+  .grid{grid-template-columns:1fr 1fr}
+  .headline{font-size:clamp(22px,3.4vw,32px)}
+  .lead{font-size:clamp(13px,1.9vw,16px)}
+  .card__name span{font-size:calc(min(25px,3.1vw) * var(--sx,1))}
+}
 </style>
 </head>
 <body>
@@ -413,7 +519,7 @@ img,svg{display:block}
 
   <div class="bg"></div>
 
-  <svg class="spark" viewBox="0 0 ${D} ${D}" aria-hidden="true">
+  <svg class="spark" viewBox="0 0 ${D} ${D}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <g fill="#e5a726">${sparkDots}</g>
     <g>${sparkStars}</g>
   </svg>
@@ -444,6 +550,17 @@ ${CARDS.map(card).join('\n')}
 
 </div>
 </div>
+
+<nav class="pagenav">
+  <a class="backbtn" href="${BACK_URL}">
+    <svg class="backbtn__gfx" viewBox="0 0 300 56" aria-hidden="true">
+      <path d="${octagon(0.8, 1.8, 298.4, 52.4, 9)}" fill="none" stroke="url(#btnLine)" stroke-width="1.3"/>
+      <path d="${octagon(4, 5, 292, 46, 7)}" fill="url(#btnBody)"/>
+      <path d="${octagon(4, 5, 292, 46, 7)}" fill="none" stroke="url(#btnEdge)" stroke-width="1.7"/>
+    </svg>
+    <span class="backbtn__label"><i class="backbtn__arrow"></i>${BACK_LABEL}</span>
+  </a>
+</nav>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 <linearGradient id="ogold" x1="0" y1="0" x2="1" y2="1">
@@ -519,9 +636,24 @@ ${CARDS.map(card).join('\n')}
 
 <script>
 (function(){
-  var vp=document.getElementById('viewport'),st=document.getElementById('stage'),D=${D};
-  function fit(){var k=vp.clientWidth/D;st.style.transform='scale('+k+')';vp.style.height=(D*k)+'px';}
-  fit();addEventListener('resize',fit);
+  var vp=document.getElementById('viewport'),st=document.getElementById('stage'),
+      D=${D},BP=${MOBILE_BP};
+  function fit(){
+    var w=vp.clientWidth;
+    if(w>=BP){
+      // wide: keep the pixel-exact canvas and scale it to the viewport
+      var k=w/D;
+      st.style.transform='scale('+k+')';
+      vp.style.height=(D*k)+'px';
+    }else{
+      // narrow: CSS reflows the page, so let it size itself
+      st.style.transform='';
+      vp.style.height='';
+    }
+  }
+  fit();
+  addEventListener('resize',fit);
+  addEventListener('orientationchange',fit);
 })();
 </script>
 </body>

@@ -106,10 +106,10 @@ img,svg{display:block}
 .btn{position:absolute;left:25px;top:88px;width:246px;height:50px;display:block;
   text-decoration:none}
 .btn__gfx{position:absolute;inset:0;width:246px;height:50px}
-.btn__label{position:absolute;left:0;right:0;top:8px;height:39.5px;display:flex;
+.btn__label{position:absolute;left:0;right:0;top:4.5px;height:41px;display:flex;
   align-items:center;justify-content:center;font-size:21px;font-weight:700;
   letter-spacing:.09em;text-indent:.09em;color:#2a1503}
-.btn__arrow{position:absolute;right:26px;top:27.5px;width:0;height:0;margin-top:-7px;
+.btn__arrow{position:absolute;right:26px;top:25px;width:0;height:0;margin-top:-7px;
   border-left:12px solid #2a1503;border-top:7px solid transparent;border-bottom:7px solid transparent}
 
 /* ---------- badge + corners ---------- */
@@ -123,6 +123,95 @@ img,svg{display:block}
 .ccorner--tr{right:5px;top:6px;transform:scaleX(-1)}
 .ccorner--bl{left:5px;bottom:5px;transform:scaleY(-1)}
 .ccorner--br{right:5px;bottom:5px;transform:scale(-1)}
+
+/* ---------- back to the main site ---------- */
+.pagenav{background:#000;padding:26px 16px 44px;text-align:center}
+.backbtn{position:relative;display:inline-block;width:300px;max-width:100%;height:56px;
+  text-decoration:none}
+.backbtn__gfx{position:absolute;inset:0;width:100%;height:100%}
+.backbtn__label{position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;gap:10px;font-size:19px;font-weight:700;letter-spacing:.06em;
+  color:#2a1503}
+.backbtn__arrow{width:0;height:0;border-right:11px solid #2a1503;
+  border-top:7px solid transparent;border-bottom:7px solid transparent}
+.backbtn:hover .backbtn__label{color:#000}
+.backbtn:focus-visible{outline:3px solid #f0cd6b;outline-offset:3px}
+
+/* ================= narrow screens: reflow into one column ================
+   Below 1000px the fixed canvas would scale text down to ~8px, so the
+   absolute positioning is unwound and the page becomes a normal document. */
+@media (max-width:999px){
+  .viewport{height:auto!important}
+  .stage{width:100%;height:auto;transform:none!important;padding:0 0 34px}
+
+  .curtain{display:none}
+  .spark{height:100%}
+  .frame{inset:7px}
+  .frame::after{inset:3px}
+  .pcorner{width:46px;height:46px}
+  .pcorner--tl,.pcorner--tr{top:8px}
+  .pcorner--bl,.pcorner--br{bottom:8px}
+  .pcorner--tl,.pcorner--bl{left:8px}
+  .pcorner--tr,.pcorner--br{right:8px}
+
+  /* must stay positioned: .bg and .spark are absolute, and absolutely
+     positioned siblings paint above static ones regardless of DOM order */
+  .content{position:relative;left:auto;top:auto;z-index:1;width:auto;height:auto;
+    padding:0 clamp(16px,4.6vw,30px)}
+  .logo{position:static;transform:none;width:min(300px,64%);margin:clamp(18px,5vw,30px) auto 0}
+  /* 4.5vw keeps all 19 characters on one line down to ~340px wide, so the
+     heading never breaks mid-word (ホ / ール) */
+  .headline{position:static;margin:clamp(14px,3.6vw,22px) 0 0;font-size:clamp(13px,4.5vw,30px);
+    line-height:1.45;letter-spacing:.01em}
+  .rule{position:static;transform:none;width:100%;max-width:560px;height:14px;
+    margin:clamp(10px,2.6vw,16px) auto 0}
+  .lead{position:static;margin:clamp(8px,2.4vw,14px) 0 0;font-size:clamp(12px,3.3vw,15px);
+    line-height:1.85;text-align:center}
+
+  .grid{position:static;width:auto;grid-template-columns:1fr;
+    gap:clamp(16px,4.4vw,26px);margin-top:clamp(20px,5.4vw,34px)}
+  /* the frame is absolute on desktop, which would collapse an auto-height card */
+  .card{width:100%;height:auto}
+  .card__frame{position:relative;inset:auto}
+  .card__body{height:auto;padding:10px 8px 8px}
+  .card__photo{width:auto;height:auto;aspect-ratio:297/199}
+  .card__rule{width:auto}
+  .card__info{width:auto;height:auto;padding:clamp(12px,3.4vw,20px) clamp(10px,3vw,16px)
+    clamp(14px,3.8vw,20px)}
+
+  .card__row{position:static;height:auto;padding:0;display:flex;align-items:center;
+    justify-content:space-between;gap:10px}
+  /* scaleX does not reduce layout width, so on a narrow screen the longest
+     name forced the card wider than the viewport. Shrink the font instead,
+     reusing the same per-card factor. */
+  .card__name{position:static;transform:none;line-height:1.3;min-width:0}
+  .card__name span{transform:none;
+    font-size:max(12.5px,calc(min(25px,5.4vw) * var(--sx,1)))}
+  .tag{position:static;flex:none;width:clamp(62px,17vw,78px);height:clamp(29px,7.6vw,36px)}
+  .tag i{font-size:clamp(13px,3.7vw,17px)}
+
+  .btn{position:static;width:100%;max-width:300px;height:clamp(46px,12vw,54px);
+    margin:clamp(12px,3.4vw,18px) auto 0}
+  .btn__gfx{width:100%;height:100%}
+  .btn__label{top:9%;height:82%;font-size:clamp(16px,4.4vw,21px)}
+  .btn__arrow{right:8%;top:50%;border-left-width:clamp(9px,2.6vw,12px);
+    border-top-width:clamp(5px,1.5vw,7px);border-bottom-width:clamp(5px,1.5vw,7px);
+    margin-top:calc(clamp(5px,1.5vw,7px) * -1)}
+
+  .badge{left:1%;top:-2px;width:clamp(58px,17vw,88px);height:auto;aspect-ratio:1}
+  .ccorner{width:clamp(20px,6vw,30px);height:clamp(20px,6vw,30px)}
+
+  .backbtn{height:clamp(48px,13vw,56px)}
+  .backbtn__label{font-size:clamp(15px,4.2vw,19px)}
+}
+
+/* tablets: two columns rather than dropping straight to one */
+@media (min-width:640px) and (max-width:999px){
+  .grid{grid-template-columns:1fr 1fr}
+  .headline{font-size:clamp(22px,3.4vw,32px)}
+  .lead{font-size:clamp(13px,1.9vw,16px)}
+  .card__name span{font-size:calc(min(25px,3.1vw) * var(--sx,1))}
+}
 </style>
 </head>
 <body>
@@ -131,7 +220,7 @@ img,svg{display:block}
 
   <div class="bg"></div>
 
-  <svg class="spark" viewBox="0 0 1254 1254" aria-hidden="true">
+  <svg class="spark" viewBox="0 0 1254 1254" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <g fill="#e5a726"><circle cx="1212" cy="28" r="1.8" opacity="0.98"/><circle cx="243" cy="28" r="1.48" opacity="0.78"/><circle cx="42" cy="29" r="1.65" opacity="0.97"/><circle cx="33" cy="33" r="1.48" opacity="1"/><circle cx="1024" cy="31" r="1.25" opacity="0.66"/><circle cx="272" cy="34" r="1.25" opacity="1"/><circle cx="1220" cy="38" r="1.8" opacity="1"/><circle cx="39" cy="41" r="1.93" opacity="0.93"/><circle cx="240" cy="38" r="1.25" opacity="0.6"/><circle cx="1213" cy="41" r="1.65" opacity="0.92"/><circle cx="978" cy="40" r="1.48" opacity="0.81"/><circle cx="1004" cy="42" r="1.48" opacity="0.78"/><circle cx="1229" cy="46" r="1.25" opacity="0.74"/><circle cx="1031" cy="48" r="1.25" opacity="0.76"/><circle cx="341" cy="49" r="1.25" opacity="0.65"/><circle cx="302" cy="54" r="1.48" opacity="0.83"/><circle cx="838" cy="54" r="1.25" opacity="0.89"/><circle cx="420" cy="59" r="1.25" opacity="0.6"/><circle cx="1008" cy="71" r="1.65" opacity="0.92"/><circle cx="292" cy="74" r="1.8" opacity="0.83"/><circle cx="958" cy="74" r="1.8" opacity="1"/><circle cx="331" cy="75" r="1.25" opacity="0.73"/><circle cx="839" cy="80" r="1.93" opacity="1"/><circle cx="265" cy="84" r="1.25" opacity="0.8"/><circle cx="340" cy="84" r="1.25" opacity="0.87"/><circle cx="994" cy="85" r="2.05" opacity="1"/><circle cx="922" cy="86" r="1.48" opacity="0.61"/><circle cx="281" cy="88" r="2.05" opacity="1"/><circle cx="911" cy="89" r="1.8" opacity="1"/><circle cx="897" cy="92" r="1.25" opacity="0.76"/><circle cx="1001" cy="92" r="1.25" opacity="0.62"/><circle cx="364" cy="98" r="1.8" opacity="0.9"/><circle cx="400" cy="102" r="1.25" opacity="0.67"/><circle cx="1032" cy="107" r="1.48" opacity="0.71"/><circle cx="234" cy="108" r="1.25" opacity="0.81"/><circle cx="1020" cy="108" r="1.93" opacity="1"/><circle cx="376" cy="111" r="1.25" opacity="0.61"/><circle cx="319" cy="112" r="1.48" opacity="0.86"/><circle cx="947" cy="112" r="1.25" opacity="0.65"/><circle cx="386" cy="114" r="2.05" opacity="1"/><circle cx="903" cy="113" r="1.25" opacity="0.69"/><circle cx="294" cy="116" r="1.8" opacity="1"/><circle cx="357" cy="116" r="1.25" opacity="0.63"/><circle cx="233" cy="118" r="1.25" opacity="0.69"/><circle cx="249" cy="118" r="1.25" opacity="0.61"/><circle cx="880" cy="122" r="1.8" opacity="1"/><circle cx="340" cy="126" r="1.8" opacity="0.87"/><circle cx="856" cy="126" r="1.48" opacity="0.9"/><circle cx="404" cy="126" r="1.48" opacity="0.92"/><circle cx="976" cy="127" r="1.25" opacity="0.66"/><circle cx="370" cy="128" r="1.25" opacity="0.63"/><circle cx="265" cy="131" r="1.93" opacity="1"/><circle cx="231" cy="134" r="1.93" opacity="0.98"/><circle cx="1031" cy="131" r="1.25" opacity="0.77"/><circle cx="1111" cy="133" r="1.65" opacity="1"/><circle cx="150" cy="136" r="1.65" opacity="1"/><circle cx="838" cy="134" r="1.25" opacity="0.74"/><circle cx="375" cy="135" r="1.25" opacity="0.61"/><circle cx="422" cy="135" r="1.25" opacity="0.74"/><circle cx="178" cy="138" r="1.48" opacity="0.95"/><circle cx="230" cy="138" r="1.48" opacity="1"/><circle cx="1115" cy="142" r="1.48" opacity="1"/><circle cx="280" cy="144" r="1.8" opacity="0.98"/><circle cx="844" cy="142" r="1.48" opacity="0.64"/><circle cx="145" cy="147" r="2.05" opacity="1"/><circle cx="838" cy="144" r="1.48" opacity="0.85"/><circle cx="971" cy="147" r="2.05" opacity="0.87"/><circle cx="1092" cy="147" r="1.8" opacity="1"/><circle cx="174" cy="146" r="1.65" opacity="0.96"/><circle cx="888" cy="146" r="1.8" opacity="0.99"/><circle cx="1024" cy="147" r="1.65" opacity="0.95"/><circle cx="908" cy="148" r="1.48" opacity="0.86"/><circle cx="953" cy="149" r="1.65" opacity="1"/><circle cx="142" cy="154" r="1.48" opacity="0.96"/><circle cx="877" cy="152" r="2.16" opacity="1"/><circle cx="316" cy="152" r="1.48" opacity="0.99"/><circle cx="942" cy="154" r="1.48" opacity="0.91"/><circle cx="1096" cy="154" r="2.05" opacity="0.99"/><circle cx="423" cy="155" r="1.25" opacity="0.61"/><circle cx="1026" cy="156" r="1.25" opacity="1"/><circle cx="863" cy="157" r="1.25" opacity="0.83"/><circle cx="838" cy="159" r="1.48" opacity="0.68"/><circle cx="1100" cy="160" r="1.48" opacity="0.96"/><circle cx="220" cy="160" r="1.48" opacity="0.83"/><circle cx="900" cy="161" r="1.25" opacity="0.72"/><circle cx="937" cy="162" r="1.48" opacity="0.65"/><circle cx="233" cy="164" r="1.65" opacity="0.71"/><circle cx="1038" cy="162" r="1.48" opacity="0.73"/><circle cx="164" cy="163" r="1.25" opacity="0.89"/><circle cx="391" cy="163" r="1.25" opacity="0.74"/><circle cx="372" cy="168" r="1.8" opacity="0.97"/><circle cx="912" cy="165" r="1.48" opacity="0.67"/><circle cx="957" cy="169" r="1.25" opacity="0.67"/><circle cx="1040" cy="172" r="1.25" opacity="0.64"/><circle cx="286" cy="174" r="1.48" opacity="0.83"/><circle cx="308" cy="173" r="1.25" opacity="0.93"/><circle cx="329" cy="175" r="2.16" opacity="1"/><circle cx="390" cy="173" r="1.25" opacity="0.96"/><circle cx="869" cy="175" r="1.25" opacity="0.62"/><circle cx="1027" cy="176" r="1.93" opacity="1"/><circle cx="1048" cy="177" r="1.25" opacity="0.62"/><circle cx="421" cy="179" r="1.25" opacity="0.74"/><circle cx="849" cy="179" r="1.25" opacity="0.61"/><circle cx="334" cy="182" r="1.25" opacity="0.62"/><circle cx="948" cy="183" r="1.25" opacity="0.67"/><circle cx="253" cy="184" r="2.05" opacity="0.84"/><circle cx="241" cy="186" r="1.48" opacity="0.71"/><circle cx="964" cy="188" r="1.65" opacity="1"/><circle cx="355" cy="188" r="1.25" opacity="0.67"/><circle cx="213" cy="190" r="1.48" opacity="0.97"/><circle cx="838" cy="192" r="1.93" opacity="0.98"/><circle cx="1065" cy="190" r="1.25" opacity="0.7"/><circle cx="1010" cy="192" r="1.65" opacity="1"/><circle cx="399" cy="192" r="1.25" opacity="0.61"/><circle cx="852" cy="194" r="1.25" opacity="0.61"/><circle cx="1040" cy="198" r="1.8" opacity="0.79"/><circle cx="376" cy="196" r="2.05" opacity="1"/><circle cx="1069" cy="198" r="1.25" opacity="0.67"/><circle cx="185" cy="199" r="1.25" opacity="0.91"/><circle cx="937" cy="199" r="1.25" opacity="0.65"/><circle cx="990" cy="200" r="1.48" opacity="0.78"/><circle cx="330" cy="200" r="1.25" opacity="0.63"/><circle cx="920" cy="200" r="1.25" opacity="0.7"/><circle cx="222" cy="202" r="1.25" opacity="0.66"/><circle cx="232" cy="204" r="1.25" opacity="0.64"/><circle cx="323" cy="204" r="1.25" opacity="0.71"/><circle cx="848" cy="204" r="1.25" opacity="0.66"/><circle cx="198" cy="206" r="2.05" opacity="1"/><circle cx="207" cy="205" r="1.25" opacity="0.62"/><circle cx="290" cy="208" r="1.8" opacity="0.88"/><circle cx="398" cy="211" r="1.48" opacity="0.66"/><circle cx="980" cy="210" r="1.8" opacity="0.88"/><circle cx="280" cy="210" r="1.93" opacity="0.98"/><circle cx="414" cy="213" r="2.35" opacity="0.91"/><circle cx="874" cy="212" r="1.93" opacity="1"/><circle cx="1005" cy="211" r="1.25" opacity="0.61"/><circle cx="1072" cy="211" r="1.25" opacity="0.7"/><circle cx="970" cy="214" r="1.65" opacity="1"/><circle cx="312" cy="216" r="1.65" opacity="0.77"/><circle cx="865" cy="217" r="1.25" opacity="0.72"/><circle cx="1096" cy="218" r="1.48" opacity="0.64"/><circle cx="1068" cy="219" r="1.25" opacity="0.89"/><circle cx="286" cy="220" r="1.25" opacity="0.7"/><circle cx="330" cy="223" r="1.65" opacity="1"/><circle cx="1056" cy="227" r="1.65" opacity="0.77"/><circle cx="930" cy="226" r="1.48" opacity="0.82"/><circle cx="264" cy="226" r="1.25" opacity="0.77"/><circle cx="893" cy="226" r="1.25" opacity="0.6"/><circle cx="380" cy="227" r="1.25" opacity="0.62"/><circle cx="409" cy="227" r="1.25" opacity="0.71"/><circle cx="276" cy="229" r="1.48" opacity="0.84"/><circle cx="362" cy="230" r="1.8" opacity="1"/><circle cx="851" cy="230" r="1.93" opacity="1"/><circle cx="229" cy="232" r="1.25" opacity="0.61"/><circle cx="912" cy="232" r="1.48" opacity="0.73"/><circle cx="217" cy="233" r="1.25" opacity="0.69"/><circle cx="303" cy="237" r="1.65" opacity="0.84"/><circle cx="401" cy="233" r="1.25" opacity="0.65"/><circle cx="383" cy="234" r="1.25" opacity="0.66"/><circle cx="190" cy="236" r="1.48" opacity="0.65"/><circle cx="164" cy="238" r="1.25" opacity="0.61"/><circle cx="300" cy="238" r="1.48" opacity="0.77"/><circle cx="838" cy="239" r="1.8" opacity="0.88"/><circle cx="1116" cy="240" r="1.65" opacity="0.81"/><circle cx="1021" cy="240" r="1.25" opacity="0.61"/><circle cx="266" cy="243" r="1.25" opacity="0.62"/><circle cx="361" cy="244" r="1.48" opacity="0.71"/><circle cx="1036" cy="243" r="1.25" opacity="0.69"/><circle cx="321" cy="246" r="1.48" opacity="0.79"/><circle cx="417" cy="245" r="1.25" opacity="0.7"/><circle cx="898" cy="246" r="1.8" opacity="0.9"/><circle cx="1052" cy="246" r="1.25" opacity="0.61"/><circle cx="1108" cy="246" r="1.25" opacity="0.71"/><circle cx="912" cy="247" r="1.25" opacity="0.65"/><circle cx="155" cy="248" r="1.25" opacity="0.69"/><circle cx="328" cy="251" r="1.25" opacity="0.63"/><circle cx="1072" cy="255" r="1.25" opacity="0.61"/><circle cx="836" cy="256" r="1.25" opacity="0.67"/><circle cx="1146" cy="259" r="1.65" opacity="1"/><circle cx="412" cy="257" r="1.25" opacity="0.69"/><circle cx="349" cy="260" r="1.65" opacity="0.98"/><circle cx="1102" cy="260" r="1.8" opacity="0.85"/><circle cx="420" cy="263" r="2.26" opacity="0.95"/><circle cx="127" cy="261" r="1.25" opacity="0.68"/><circle cx="276" cy="261" r="1.25" opacity="0.72"/><circle cx="1030" cy="262" r="1.25" opacity="0.71"/><circle cx="1152" cy="266" r="2.35" opacity="0.9"/><circle cx="190" cy="266" r="1.8" opacity="0.8"/><circle cx="105" cy="269" r="2.05" opacity="0.87"/><circle cx="1062" cy="267" r="1.25" opacity="0.65"/><circle cx="176" cy="272" r="1.93" opacity="1"/><circle cx="418" cy="271" r="1.25" opacity="0.62"/><circle cx="838" cy="272" r="1.25" opacity="0.69"/><circle cx="1045" cy="273" r="1.25" opacity="0.62"/><circle cx="400" cy="275" r="1.25" opacity="0.66"/><circle cx="1165" cy="277" r="2.44" opacity="0.79"/><circle cx="1101" cy="279" r="1.65" opacity="0.83"/><circle cx="91" cy="282" r="2.44" opacity="0.81"/><circle cx="1054" cy="282" r="1.48" opacity="0.81"/><circle cx="314" cy="284" r="1.48" opacity="0.73"/><circle cx="1095" cy="287" r="1.65" opacity="0.85"/><circle cx="1176" cy="286" r="2.16" opacity="0.72"/><circle cx="1013" cy="286" r="1.65" opacity="0.89"/><circle cx="836" cy="286" r="1.48" opacity="0.79"/><circle cx="347" cy="288" r="1.8" opacity="1"/><circle cx="79" cy="289" r="1.25" opacity="0.7"/><circle cx="1217" cy="292" r="2.83" opacity="0.85"/><circle cx="37" cy="293" r="2.26" opacity="0.77"/><circle cx="1142" cy="290" r="1.25" opacity="0.73"/><circle cx="114" cy="291" r="1.65" opacity="1"/><circle cx="30" cy="292" r="1.25" opacity="0.63"/><circle cx="415" cy="295" r="1.25" opacity="0.66"/><circle cx="248" cy="296" r="1.48" opacity="0.79"/><circle cx="1215" cy="296" r="1.25" opacity="0.73"/><circle cx="39" cy="297" r="1.25" opacity="0.64"/><circle cx="53" cy="302" r="2.05" opacity="1"/><circle cx="174" cy="301" r="1.25" opacity="0.6"/><circle cx="1092" cy="302" r="1.8" opacity="0.91"/><circle cx="1108" cy="305" r="1.25" opacity="0.75"/><circle cx="1118" cy="308" r="1.8" opacity="0.66"/><circle cx="1197" cy="313" r="1.65" opacity="0.71"/><circle cx="89" cy="316" r="1.48" opacity="0.72"/><circle cx="1152" cy="330" r="1.8" opacity="0.96"/><circle cx="165" cy="334" r="1.48" opacity="0.75"/><circle cx="1033" cy="341" r="1.25" opacity="0.63"/><circle cx="1118" cy="341" r="1.65" opacity="1"/><circle cx="86" cy="342" r="1.25" opacity="0.66"/><circle cx="163" cy="342" r="1.48" opacity="0.79"/><circle cx="1168" cy="346" r="1.25" opacity="0.61"/><circle cx="156" cy="351" r="1.65" opacity="0.94"/><circle cx="1074" cy="356" r="1.8" opacity="0.89"/><circle cx="1154" cy="356" r="1.25" opacity="0.81"/><circle cx="1083" cy="357" r="1.25" opacity="0.64"/><circle cx="1037" cy="364" r="1.25" opacity="0.77"/><circle cx="1098" cy="368" r="1.48" opacity="0.9"/><circle cx="1130" cy="369" r="1.48" opacity="0.83"/><circle cx="130" cy="380" r="1.65" opacity="0.99"/><circle cx="1145" cy="381" r="1.25" opacity="0.62"/><circle cx="1124" cy="385" r="1.48" opacity="0.83"/><circle cx="1118" cy="398" r="1.8" opacity="0.82"/><circle cx="1154" cy="408" r="1.8" opacity="1"/><circle cx="98" cy="414" r="1.25" opacity="0.66"/><circle cx="104" cy="424" r="1.25" opacity="0.62"/><circle cx="126" cy="429" r="1.48" opacity="0.72"/><circle cx="1124" cy="430" r="1.25" opacity="0.63"/><circle cx="106" cy="446" r="1.8" opacity="0.98"/><circle cx="1122" cy="452" r="1.25" opacity="0.69"/><circle cx="110" cy="463" r="1.65" opacity="1"/><circle cx="1138" cy="488" r="1.8" opacity="0.99"/><circle cx="1134" cy="500" r="1.25" opacity="0.65"/><circle cx="110" cy="502" r="1.48" opacity="0.83"/><circle cx="1124" cy="508" r="1.48" opacity="0.7"/><circle cx="110" cy="535" r="1.25" opacity="0.62"/><circle cx="1145" cy="536" r="1.48" opacity="0.64"/><circle cx="114" cy="562" r="1.25" opacity="0.63"/><circle cx="1130" cy="569" r="1.65" opacity="1"/><circle cx="113" cy="606" r="1.25" opacity="0.65"/><circle cx="1145" cy="1063" r="1.25" opacity="0.6"/><circle cx="1190" cy="1079" r="1.48" opacity="0.7"/><circle cx="85" cy="1084" r="1.48" opacity="0.78"/><circle cx="1127" cy="1088" r="1.25" opacity="0.64"/><circle cx="1150" cy="1098" r="1.48" opacity="0.68"/><circle cx="1194" cy="1109" r="1.25" opacity="0.66"/><circle cx="126" cy="1113" r="1.25" opacity="0.6"/><circle cx="1150" cy="1118" r="1.25" opacity="0.64"/><circle cx="96" cy="1122" r="1.48" opacity="0.61"/><circle cx="1140" cy="1124" r="1.8" opacity="0.88"/><circle cx="1200" cy="1132" r="1.65" opacity="1"/><circle cx="45" cy="1138" r="1.65" opacity="0.9"/><circle cx="126" cy="1146" r="1.48" opacity="0.7"/><circle cx="1134" cy="1151" r="1.25" opacity="0.8"/><circle cx="104" cy="1154" r="1.48" opacity="0.82"/><circle cx="101" cy="1163" r="1.25" opacity="0.67"/><circle cx="45" cy="1172" r="1.48" opacity="0.92"/><circle cx="83" cy="1171" r="1.25" opacity="0.66"/><circle cx="1168" cy="1178" r="1.8" opacity="0.97"/><circle cx="115" cy="1190" r="1.25" opacity="0.73"/><circle cx="63" cy="1193" r="1.25" opacity="0.71"/><circle cx="790" cy="1196" r="1.25" opacity="0.65"/><circle cx="538" cy="1198" r="1.8" opacity="0.78"/><circle cx="641" cy="1198" r="1.25" opacity="0.83"/><circle cx="1048" cy="1202" r="1.8" opacity="0.78"/><circle cx="475" cy="1203" r="1.25" opacity="0.8"/><circle cx="141" cy="1210" r="1.48" opacity="0.79"/><circle cx="1156" cy="1209" r="1.48" opacity="0.92"/><circle cx="28" cy="1211" r="1.65" opacity="1"/><circle cx="42" cy="1210" r="1.48" opacity="1"/><circle cx="734" cy="1210" r="1.48" opacity="0.69"/><circle cx="1214" cy="1212" r="1.48" opacity="0.95"/><circle cx="1225" cy="1212" r="1.48" opacity="1"/><circle cx="324" cy="1212" r="1.8" opacity="0.95"/><circle cx="435" cy="1213" r="1.65" opacity="0.98"/><circle cx="775" cy="1213" r="1.65" opacity="1"/><circle cx="264" cy="1213" r="1.25" opacity="0.77"/><circle cx="593" cy="1213" r="1.25" opacity="0.64"/><circle cx="871" cy="1213" r="1.25" opacity="0.8"/><circle cx="1005" cy="1216" r="1.65" opacity="0.89"/><circle cx="671" cy="1218" r="1.65" opacity="0.83"/><circle cx="1219" cy="1217" r="1.25" opacity="0.82"/><circle cx="1205" cy="1224" r="1.65" opacity="1"/></g>
     <g><use href="#st" x="935" y="42" opacity="1"/><use href="#st" x="364" y="58" opacity="1"/><use href="#st" x="893" y="60" opacity="1"/><use href="#st" x="856" y="103" opacity="1"/><use href="#st" x="922" y="144" opacity="1"/><use href="#st" x="919" y="216" opacity="1"/><use href="#st" x="208" y="245" opacity="0.97"/><use href="#st" x="954" y="245" opacity="1"/><use href="#st" x="1159" y="272" opacity="1"/><use href="#st" x="96" y="277" opacity="1"/><use href="#st" x="1209" y="296" opacity="0.97"/><use href="#st" x="46" y="298" opacity="0.97"/><use href="#st" x="1202" y="299" opacity="1"/><use href="#st" x="141" y="311" opacity="0.99"/><use href="#st" x="100" y="350" opacity="1"/></g>
   </svg>
@@ -374,9 +463,9 @@ img,svg{display:block}
           <span class="tag"><i>新潟県</i></span>
         </div>
         <a class="btn" href="#"><svg class="btn__gfx" viewBox="0 0 246 50" aria-hidden="true">
-<path d="M9.6 0.6H236.4L245.4 9.6V40.4L236.4 49.4H9.6L0.6 40.4V9.6Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="url(#btnBody)"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
+<path d="M9.3 1.8H236.70000000000002L245.20000000000002 10.3V39.699999999999996L236.70000000000002 48.199999999999996H9.3L0.8 39.699999999999996V10.3Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="url(#btnBody)"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
 </svg><span class="btn__label">店舗情報</span><span class="btn__arrow"></span></a>
       </div>
     </div>
@@ -492,9 +581,9 @@ img,svg{display:block}
           <span class="tag"><i>京都府</i></span>
         </div>
         <a class="btn" href="#"><svg class="btn__gfx" viewBox="0 0 246 50" aria-hidden="true">
-<path d="M9.6 0.6H236.4L245.4 9.6V40.4L236.4 49.4H9.6L0.6 40.4V9.6Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="url(#btnBody)"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
+<path d="M9.3 1.8H236.70000000000002L245.20000000000002 10.3V39.699999999999996L236.70000000000002 48.199999999999996H9.3L0.8 39.699999999999996V10.3Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="url(#btnBody)"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
 </svg><span class="btn__label">店舗情報</span><span class="btn__arrow"></span></a>
       </div>
     </div>
@@ -610,9 +699,9 @@ img,svg{display:block}
           <span class="tag"><i>新潟県</i></span>
         </div>
         <a class="btn" href="#"><svg class="btn__gfx" viewBox="0 0 246 50" aria-hidden="true">
-<path d="M9.6 0.6H236.4L245.4 9.6V40.4L236.4 49.4H9.6L0.6 40.4V9.6Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="url(#btnBody)"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
+<path d="M9.3 1.8H236.70000000000002L245.20000000000002 10.3V39.699999999999996L236.70000000000002 48.199999999999996H9.3L0.8 39.699999999999996V10.3Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="url(#btnBody)"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
 </svg><span class="btn__label">店舗情報</span><span class="btn__arrow"></span></a>
       </div>
     </div>
@@ -728,9 +817,9 @@ img,svg{display:block}
           <span class="tag"><i>鹿児島県</i></span>
         </div>
         <a class="btn" href="#"><svg class="btn__gfx" viewBox="0 0 246 50" aria-hidden="true">
-<path d="M9.6 0.6H236.4L245.4 9.6V40.4L236.4 49.4H9.6L0.6 40.4V9.6Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="url(#btnBody)"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
+<path d="M9.3 1.8H236.70000000000002L245.20000000000002 10.3V39.699999999999996L236.70000000000002 48.199999999999996H9.3L0.8 39.699999999999996V10.3Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="url(#btnBody)"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
 </svg><span class="btn__label">店舗情報</span><span class="btn__arrow"></span></a>
       </div>
     </div>
@@ -846,9 +935,9 @@ img,svg{display:block}
           <span class="tag"><i>愛知県</i></span>
         </div>
         <a class="btn" href="#"><svg class="btn__gfx" viewBox="0 0 246 50" aria-hidden="true">
-<path d="M9.6 0.6H236.4L245.4 9.6V40.4L236.4 49.4H9.6L0.6 40.4V9.6Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="url(#btnBody)"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
+<path d="M9.3 1.8H236.70000000000002L245.20000000000002 10.3V39.699999999999996L236.70000000000002 48.199999999999996H9.3L0.8 39.699999999999996V10.3Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="url(#btnBody)"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
 </svg><span class="btn__label">店舗情報</span><span class="btn__arrow"></span></a>
       </div>
     </div>
@@ -964,9 +1053,9 @@ img,svg{display:block}
           <span class="tag"><i>兵庫県</i></span>
         </div>
         <a class="btn" href="#"><svg class="btn__gfx" viewBox="0 0 246 50" aria-hidden="true">
-<path d="M9.6 0.6H236.4L245.4 9.6V40.4L236.4 49.4H9.6L0.6 40.4V9.6Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="url(#btnBody)"/>
-<path d="M10.5 8H236.5L243 14.5V41L236.5 47.5H10.5L4 41V14.5Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
+<path d="M9.3 1.8H236.70000000000002L245.20000000000002 10.3V39.699999999999996L236.70000000000002 48.199999999999996H9.3L0.8 39.699999999999996V10.3Z" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="url(#btnBody)"/>
+<path d="M10 4.5H236L242.5 11V39L236 45.5H10L3.5 39V11Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
 </svg><span class="btn__label">店舗情報</span><span class="btn__arrow"></span></a>
       </div>
     </div>
@@ -1077,6 +1166,17 @@ img,svg{display:block}
 </div>
 </div>
 
+<nav class="pagenav">
+  <a class="backbtn" href="https://uraken0915.com/">
+    <svg class="backbtn__gfx" viewBox="0 0 300 56" aria-hidden="true">
+      <path d="M9.8 1.8H290.2L299.2 10.8V45.199999999999996L290.2 54.199999999999996H9.8L0.8 45.199999999999996V10.8Z" fill="none" stroke="url(#btnLine)" stroke-width="1.3"/>
+      <path d="M11 5H289L296 12V44L289 51H11L4 44V12Z" fill="url(#btnBody)"/>
+      <path d="M11 5H289L296 12V44L289 51H11L4 44V12Z" fill="none" stroke="url(#btnEdge)" stroke-width="1.7"/>
+    </svg>
+    <span class="backbtn__label"><i class="backbtn__arrow"></i>元のページへ戻る</span>
+  </a>
+</nav>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 <linearGradient id="ogold" x1="0" y1="0" x2="1" y2="1">
   <stop offset="0" stop-color="#f9e9ab"/><stop offset=".4" stop-color="#d6a934"/>
@@ -1151,9 +1251,24 @@ img,svg{display:block}
 
 <script>
 (function(){
-  var vp=document.getElementById('viewport'),st=document.getElementById('stage'),D=1254;
-  function fit(){var k=vp.clientWidth/D;st.style.transform='scale('+k+')';vp.style.height=(D*k)+'px';}
-  fit();addEventListener('resize',fit);
+  var vp=document.getElementById('viewport'),st=document.getElementById('stage'),
+      D=1254,BP=1000;
+  function fit(){
+    var w=vp.clientWidth;
+    if(w>=BP){
+      // wide: keep the pixel-exact canvas and scale it to the viewport
+      var k=w/D;
+      st.style.transform='scale('+k+')';
+      vp.style.height=(D*k)+'px';
+    }else{
+      // narrow: CSS reflows the page, so let it size itself
+      st.style.transform='';
+      vp.style.height='';
+    }
+  }
+  fit();
+  addEventListener('resize',fit);
+  addEventListener('orientationchange',fit);
 })();
 </script>
 </body>

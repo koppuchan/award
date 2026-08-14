@@ -48,11 +48,33 @@ button plate.
 The 315 background sparkles are real coordinates extracted from `design.png`
 rather than random noise.
 
-## Scaling
+## Scaling and responsive behaviour
 
-The page is a fixed 1254px stage that is scaled to the viewport by a small
-inline script (`transform: scale()` + a matching wrapper height), so the
-layout stays pixel-proportional at any width, including mobile.
+Two modes, switched at `MOBILE_BP` (1000px) in `tools/build.mjs`:
+
+- **≥1000px** — the fixed 1254px stage is scaled to the viewport by a small
+  inline script (`transform: scale()` + a matching wrapper height), so the
+  design stays pixel-proportional to the comp.
+- **<1000px** — scaling is switched off and the page reflows into a normal
+  document: curtains hidden, cards one per row (two between 640–999px), and
+  type sized with `clamp()`. At 390px the scaled canvas would have rendered
+  25px text at ~8px, which is why a real reflow is needed rather than
+  shrinking further.
+
+Two things to know if you touch the mobile rules:
+
+- `.bg` and `.spark` are absolutely positioned, so `.content` **must** stay
+  positioned (`position: relative; z-index: 1`) or they paint over it — and
+  it must reset `left`/`top`, since the desktop rule offsets it by 137px.
+- `transform: scaleX()` condenses the store names visually but does **not**
+  reduce their layout width. On narrow screens the font-size is scaled by the
+  same `--sx` factor instead, otherwise the longest name forces the card
+  wider than the viewport.
+
+## Back link
+
+The "back to the main site" button under the canvas is driven by `BACK_URL`
+at the top of `tools/build.mjs`.
 
 ## Notes on the assets
 
