@@ -260,13 +260,15 @@ function octagon(x, y, w, h, c) {
     `H${x + c}L${x} ${y + h - c}V${y + c}Z`;
 }
 
-/* The outline hugs the plate with an even gap on all four sides. An earlier
-   version inset the plate 8px from the top but only 2px from the bottom,
-   which read as the button sitting low inside its frame. */
-const BTN_PLATE = octagon(3.5, 4.5, 239, 41, 6.5);
+/* The comp draws the outline 7px above the plate but only ~2px to the sides,
+   which reads as the button sitting low inside its frame (the client flagged
+   it). The plate is left exactly where the comp has it — local y 8..47, i.e.
+   design y 719..758 — and only the outline moves, so it now clears the plate
+   by an even 2.7px on all four sides. */
+const BTN_PLATE = octagon(4.5, 8, 237, 39, 6.5);
 
 const BTN_GFX = `<svg class="btn__gfx" viewBox="0 0 246 50" aria-hidden="true">
-<path d="${octagon(0.8, 1.8, 244.4, 46.4, 8.5)}" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
+<path d="${octagon(1.8, 5.3, 242.4, 44.4, 8.5)}" fill="none" stroke="url(#btnLine)" stroke-width="1.2"/>
 <path d="${BTN_PLATE}" fill="url(#btnBody)"/>
 <path d="${BTN_PLATE}" fill="none" stroke="url(#btnEdge)" stroke-width="1.6"/>
 </svg>`;
@@ -405,10 +407,10 @@ img,svg{display:block}
 .btn{position:absolute;left:25px;top:88px;width:246px;height:50px;display:block;
   text-decoration:none}
 .btn__gfx{position:absolute;inset:0;width:246px;height:50px}
-.btn__label{position:absolute;left:0;right:0;top:4.5px;height:41px;display:flex;
+.btn__label{position:absolute;left:0;right:0;top:8px;height:39px;display:flex;
   align-items:center;justify-content:center;font-size:21px;font-weight:700;
   letter-spacing:.09em;text-indent:.09em;color:#2a1503}
-.btn__arrow{position:absolute;right:26px;top:25px;width:0;height:0;margin-top:-7px;
+.btn__arrow{position:absolute;right:26px;top:27.5px;width:0;height:0;margin-top:-7px;
   border-left:12px solid #2a1503;border-top:7px solid transparent;border-bottom:7px solid transparent}
 
 /* ---------- badge + corners ---------- */
@@ -464,7 +466,7 @@ img,svg{display:block}
     line-height:1.45;letter-spacing:.01em}
   .rule{position:static;transform:none;width:100%;max-width:560px;height:14px;
     margin:clamp(10px,2.6vw,16px) auto 0}
-  .lead{position:static;margin:clamp(8px,2.4vw,14px) 0 0;font-size:clamp(12px,3.3vw,15px);
+  .lead{position:static;margin:clamp(8px,2.4vw,14px) 0 0;font-size:clamp(13px,3.3vw,15px);
     line-height:1.85;text-align:center}
 
   .grid{position:static;width:auto;grid-template-columns:1fr;
