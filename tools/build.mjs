@@ -488,21 +488,31 @@ img,svg{display:block}
   .card__name{position:static;transform:none;line-height:1.3;min-width:0}
   .card__name span{transform:none;
     font-size:max(12.5px,calc(min(25px,5.4vw) * var(--sx,1)))}
-  .tag{position:static;flex:none;width:clamp(62px,17vw,78px);height:clamp(29px,7.6vw,36px)}
+  /* .tag and .btn must stay positioned, not static: each has absolutely
+     positioned children (.tag::before, .btn__gfx/__label/__arrow). Going
+     static hands those children the nearest positioned ancestor instead —
+     .card__info — so the button plate stretched across the whole panel and
+     painted over the store name. left/top are reset because the desktop
+     rules offset them. */
+  .tag{position:relative;right:auto;top:auto;flex:none;
+    width:clamp(62px,17vw,78px);height:clamp(29px,7.6vw,36px)}
   .tag i{font-size:clamp(13px,3.7vw,17px)}
 
-  .btn{position:static;width:100%;max-width:300px;height:clamp(46px,12vw,54px);
-    margin:clamp(12px,3.4vw,18px) auto 0}
+  /* aspect-ratio must match the viewBox, otherwise preserveAspectRatio
+     letterboxes the plate inside a wider box and the arrow lands off it */
+  .btn{position:relative;left:auto;top:auto;width:100%;max-width:300px;
+    height:auto;aspect-ratio:246/50;margin:clamp(12px,3.4vw,18px) auto 0}
   .btn__gfx{width:100%;height:100%}
-  .btn__label{top:9%;height:82%;font-size:clamp(16px,4.4vw,21px)}
-  .btn__arrow{right:8%;top:50%;border-left-width:clamp(9px,2.6vw,12px);
+  /* the plate spans viewBox y 8..47 of 50 */
+  .btn__label{top:16%;height:78%;font-size:clamp(16px,4.4vw,21px)}
+  .btn__arrow{right:10%;top:50%;border-left-width:clamp(9px,2.6vw,12px);
     border-top-width:clamp(5px,1.5vw,7px);border-bottom-width:clamp(5px,1.5vw,7px);
     margin-top:calc(clamp(5px,1.5vw,7px) * -1)}
 
   .badge{left:1%;top:-2px;width:clamp(58px,17vw,88px);height:auto;aspect-ratio:1}
   .ccorner{width:clamp(20px,6vw,30px);height:clamp(20px,6vw,30px)}
 
-  .backbtn{height:clamp(48px,13vw,56px)}
+  .backbtn{height:auto;aspect-ratio:300/56}
   .backbtn__label{font-size:clamp(15px,4.2vw,19px)}
 }
 
